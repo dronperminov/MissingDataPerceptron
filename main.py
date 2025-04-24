@@ -3,8 +3,7 @@ import logging
 import os
 import sys
 import time
-from pyexpat import features
-from typing import Callable, Dict, List
+from typing import Callable, List
 
 import numpy as np
 import pandas as pd
@@ -59,7 +58,7 @@ def imput_data(df: pd.DataFrame, imputer_call: Callable, classes: int) -> pd.Dat
     return df
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", help="dataset name", type=str, default="clusters")
     parser.add_argument("--missing-part", help="part of missed rows", type=float, default=0.5)
@@ -198,9 +197,9 @@ def main():
                     classifiers[key].save(os.path.join(classifiers_dir, f"{key}_{step}.zip"))
 
             if step % args.plot_metrics_period == 0:
-                metrics.plot(path=os.path.join(experiment_dir, "metrics.png"), split_names=plot_splits, metric_names=plot_metrics, period=args.plot_metrics_period)
-                metrics.save(path=os.path.join(experiment_dir, "metrics.json"))
+                metrics.plot(os.path.join(experiment_dir, "metrics.png"), split_names=plot_splits, metric_names=plot_metrics, period=args.plot_metrics_period)
+                metrics.save(os.path.join(experiment_dir, "metrics.json"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

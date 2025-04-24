@@ -54,7 +54,8 @@ class Perceptron(nn.Module):
     def load(self, path: str) -> None:
         self.load_state_dict(torch.load(path))
 
-    def get_shapes(self, x0: float, y0: float, width: float, height: float, font_size: float = 11, max_radius: float = 0.36, max_gap: float = 0.5, min_gap: float = 0.1, padding: float = 0.1) -> List[dict]:
+    def get_shapes(self, x0: float, y0: float, width: float, height: float, font_size: float = 11, max_radius: float = 0.36,
+                   max_gap: float = 0.5, min_gap: float = 0.1, padding: float = 0.1) -> List[dict]:
         coordinates = self.__get_best_coordinates(width=width, height=height, max_radius=max_radius, max_gap=max_gap, min_gap=min_gap, padding=padding)
         shapes = []
 
@@ -145,11 +146,11 @@ class Perceptron(nn.Module):
         layer_name = "xABCDEFGHIJKLMNOPQRSTUVWXYZ"[layer + 1]
         return f"{layer_name}{self.__number_to_index(neuron + 1)}"
 
-    def __number_to_index(self, number):
+    def __number_to_index(self, number: int) -> str:
         if number == 0:
             return "₀"
 
-        digits_str = '₀₁₂₃₄₅₆₇₈₉'
+        digits_str = "₀₁₂₃₄₅₆₇₈₉"
         digits = []
 
         while number > 0:

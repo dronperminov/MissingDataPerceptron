@@ -3,7 +3,7 @@ import pandas as pd
 
 
 class Compact:
-    def __init__(self, v_min: np.ndarray, v_max: np.ndarray, offset: float):
+    def __init__(self, v_min: np.ndarray, v_max: np.ndarray, offset: float) -> None:
         delta = (v_max - v_min) * offset
         self.v_min = v_min - delta / 2
         self.v_max = v_max + delta / 2

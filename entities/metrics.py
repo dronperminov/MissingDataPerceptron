@@ -76,7 +76,7 @@ class Metrics:
                 for x, step_values in enumerate(values):
                     mean = np.mean(step_values)
                     std = np.std(step_values)
-                    ax.text(x, mean, f'{mean:.3f}±{std:.2f}', ha='center', va='bottom', fontsize=7, color=color)
+                    ax.text(x, mean, f"{mean:.3f}±{std:.2f}", ha="center", va="bottom", fontsize=7, color=color)
 
                 ax.legend(loc="best")
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 
-from models.perceptron import Perceptron
+from entities.perceptron import Perceptron
 
 
 @dataclass
@@ -27,7 +27,7 @@ class Line:
 
 
 class CellsExtractor:
-    def __init__(self, perceptron: Perceptron):
+    def __init__(self, perceptron: Perceptron) -> None:
         self.perceptron = perceptron
 
     def extract(self, x_min: float, x_max: float, y_min: float, y_max: float, x_axis: int, y_axis: int) -> List[dict]:

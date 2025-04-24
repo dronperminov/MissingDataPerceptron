@@ -1,0 +1,14 @@
+[flake8]
+
+max-line-length = 160
+max-complexity = 15
+inline-quotes = "
+
+application-import-names = classifiers, entities
+import-order-style = pycharm
+
+exclude = .git, __pycache__, .idea
+
+# ANN101 - type annotations for self
+# ANN102 - type annotations for cls
+ignore = ANN101, ANN102

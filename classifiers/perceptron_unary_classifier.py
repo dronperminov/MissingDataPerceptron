@@ -18,12 +18,12 @@ from torch.utils.data.dataset import TensorDataset
 
 from entities.cells_extractor import CellsExtractor
 from entities.compact import Compact
+from entities.perceptron import Perceptron
 from entities.train_params import TrainParams
-from models.perceptron import Perceptron
 
 
 class PerceptronUnaryClassifier:
-    def __init__(self, dimension: int, classes: int, sizes: List[int], beta: float , device: torch.device) -> None:
+    def __init__(self, dimension: int, classes: int, sizes: List[int], beta: float, device: torch.device) -> None:
         self.dimension = dimension
         self.classes = classes
         self.beta = beta
@@ -39,7 +39,7 @@ class PerceptronUnaryClassifier:
             self.compacts[label] = Compact.from_df(df=df)
             self.optimizers[label] = None
 
-    def fit(self, train_df: pd.DataFrame, train_params: TrainParams):
+    def fit(self, train_df: pd.DataFrame, train_params: TrainParams) -> None:
         label2df = {}
 
         for label, compact in enumerate(self.compacts):
@@ -56,7 +56,7 @@ class PerceptronUnaryClassifier:
         predictions = []
 
         with torch.no_grad():
-            for label, (model, compact) in enumerate(zip(self.models, self.compacts)):
+            for model, compact in zip(self.models, self.compacts):
                 data = df.values
                 outside = np.all((data < compact.v_min) | (data > compact.v_max), axis=1)
 
@@ -105,10 +105,10 @@ class PerceptronUnaryClassifier:
         data = np.array(np.meshgrid(x, y)).T.reshape(-1, 2)
 
         label2colormap = {
-            0: ListedColormap(['#ffffff', '#f0f4fa', '#e1e8f5', '#d1ddf1', '#c2d2ec', '#b3c6e7', '#a4bbe2', '#94b0de', '#85a4d9', '#7699d4']),
-            1: ListedColormap(['#ffffff', '#fbefef', '#f7e0e0', '#f4d0d0', '#f0c1c1', '#ecb1b1', '#e8a2a2', '#e59292', '#e18383', '#dd7373']),
-            2: ListedColormap(['#ffffff', '#f2fbef', '#e5f7e0', '#d8f4d0', '#cbf0c1', '#bdecb1', '#b0e8a2', '#a3e592', '#96e183', '#89dd73']),
-            3: ListedColormap(['#ffffff', '#fbeffb', '#f7e0f7', '#f4d0f3', '#f0c1ef', '#ecb1eb', '#e8a2e7', '#e592e3', '#e183df', '#dd73db'])
+            0: ListedColormap(["#ffffff", "#f0f4fa", "#e1e8f5", "#d1ddf1", "#c2d2ec", "#b3c6e7", "#a4bbe2", "#94b0de", "#85a4d9", "#7699d4"]),
+            1: ListedColormap(["#ffffff", "#fbefef", "#f7e0e0", "#f4d0d0", "#f0c1c1", "#ecb1b1", "#e8a2a2", "#e59292", "#e18383", "#dd7373"]),
+            2: ListedColormap(["#ffffff", "#f2fbef", "#e5f7e0", "#d8f4d0", "#cbf0c1", "#bdecb1", "#b0e8a2", "#a3e592", "#96e183", "#89dd73"]),
+            3: ListedColormap(["#ffffff", "#fbeffb", "#f7e0f7", "#f4d0f3", "#f0c1ef", "#ecb1eb", "#e8a2e7", "#e592e3", "#e183df", "#dd73db"])
         }
 
         label2color = {
@@ -130,7 +130,7 @@ class PerceptronUnaryClassifier:
             cells_extractor = CellsExtractor(perceptron=model)
             layer2cells = cells_extractor.extract(x_min=-0.5, y_min=-0.5, x_max=0.5, y_max=0.5, x_axis=0, y_axis=1)
 
-            for key, cell in layer2cells[-1].items():
+            for cell in layer2cells[-1].values():
                 ax.add_patch(patches.Polygon(xy=np.array(cell), closed=True, edgecolor="#555555", alpha=0.8, fill=None, linewidth=0.2))
 
             ax.set_title(f'Model for class "{label}": [{z.min():.4f}, {z.max():.4f}], {len(label_df)} points')
@@ -166,10 +166,12 @@ class PerceptronUnaryClassifier:
                     mask = (z[:, label1] > self.beta) & (z[:, label2] > self.beta) & (z[:, label3] > self.beta)
                     zz[mask] = np.rot90(lines).reshape(n * n)[mask]
 
+        colormap = ListedColormap(["#000000", "#ffffff"] + [label2color[label] for label in range(self.classes)])
+
         for i in range(2):
             ax = figure.add_subplot(gs[0, self.classes + i])
             ax.set_title("Classifier")
-            ax.pcolor(x, y, zz.reshape((n, n)).T, vmin=-1, vmax=self.classes, cmap=ListedColormap(["#000000", "#ffffff"] + [label2color[label] for label in range(self.classes)]))
+            ax.pcolor(x, y, zz.reshape((n, n)).T, vmin=-1, vmax=self.classes, cmap=colormap)
 
             if i == 1:
                 ax.scatter(test_df["x"], test_df["y"], color=test_df["label"].map(label2color), s=20, edgecolors="#ffffff", linewidths=0.5)
@@ -243,7 +245,7 @@ class PerceptronUnaryClassifier:
         self.optimizers = []
         self.compacts = []
 
-        for label, model_config in enumerate(models_config):
+        for model_config in models_config:
             model = Perceptron(
                 dimension=self.dimension,
                 sizes=model_config["sizes"],
@@ -256,13 +258,13 @@ class PerceptronUnaryClassifier:
             self.compacts.append(Compact.from_json(model_config["compact"]))
             self.optimizers.append(None)
 
-    def __train_model(self, model: Perceptron, df: pd.DataFrame, train_params: TrainParams, optimizer: torch.optim):
+    def __train_model(self, model: Perceptron, df: pd.DataFrame, train_params: TrainParams, optimizer: torch.optim) -> None:
         x_real = torch.tensor(df.iloc[:, :-1].values, dtype=torch.float32, device=self.device)
         y_real = torch.ones((x_real.shape[0], 1), dtype=torch.float32, device=self.device)
         dataloader = DataLoader(TensorDataset(x_real, y_real), batch_size=train_params.batch_size, shuffle=True)
         criterion = BCELoss()
 
-        for epoch in range(train_params.epochs):
+        for _ in range(train_params.epochs):
             total_loss = 0
 
             for x, y in dataloader:
